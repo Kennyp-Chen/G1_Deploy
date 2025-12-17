@@ -9,7 +9,17 @@ from policy.skill_cooldown.SkillCooldown import SkillCooldown
 from policy.skill_cast.SkillCast import SkillCast
 from policy.kick.Kick import Kick
 from policy.kungfu2.KungFu2 import KungFu2
-from policy.beyond_mimic.BeyondMimic import BeyondMimic
+from policy.fas_byd_7s.FasByd7s import FasByd7s
+from policy.beyond_mimic_motions.dance101.Dance101 import Dance101
+from policy.beyond_mimic_motions.dance102.Dance102 import Dance102
+from policy.beyond_mimic_motions.fightAndSports101.FightAndSports101 import FightAndSports101
+from policy.beyond_mimic_motions.run201.Run201 import Run201
+from policy.beyond_mimic_motions.walk105.Walk105 import Walk105
+from policy.beyond_mimic_motions.jump101.jump101 import jump101
+from policy.beyond_mimic_motions.gangnam_style.GangnamStyle import GangnamStyle
+from policy.beyond_mimic_motions.dance102_sar.Dance102Sar import Dance102Sar
+from policy.beyond_mimic_motions.fallAndGetup101.FallAndGetup101 import FallAndGetup101
+from policy.beyond_mimic_motions.dance204.Dance204 import Dance204
 from FSM.FSMState import *
 import time
 from common.ctrlcomp import *
@@ -38,7 +48,81 @@ class FSM:
         self.skill_cast_policy = SkillCast(state_cmd, policy_output)
         self.kick_policy = Kick(state_cmd, policy_output)
         self.kungfu2_policy = KungFu2(state_cmd, policy_output)
-        self.beyond_mimic_policy = BeyondMimic(state_cmd, policy_output)
+        self.fas_byd_7s_policy = FasByd7s(state_cmd, policy_output)
+        
+        # Initialize new policies with error handling
+        self.dance101_policy = None
+        self.dance102_policy = None
+        self.fightAndSports101_policy = None
+        self.run201_policy = None
+        self.walk105_policy = None
+        
+        try:
+            print("Loading Dance101 policy...")
+            self.dance101_policy = Dance101(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load Dance101 policy: {e}")
+            
+        try:
+            print("Loading Dance102 policy...")
+            self.dance102_policy = Dance102(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load Dance102 policy: {e}")
+            
+        try:
+            print("Loading FightAndSports101 policy...")
+            self.fightAndSports101_policy = FightAndSports101(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load FightAndSports101 policy: {e}")
+            
+        try:
+            print("Loading Run201 policy...")
+            self.run201_policy = Run201(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load Run201 policy: {e}")
+            
+        try:
+            print("Loading Walk105 policy...")
+            self.walk105_policy = Walk105(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load Walk105 policy: {e}")
+        
+        # Initialize additional new policies
+        self.jump101_policy = None
+        self.gangnam_style_policy = None
+        self.dance102_sar_policy = None
+        self.fallAndGetup101_policy = None
+        self.dance204_policy = None
+        
+        try:
+            print("Loading jump101 policy...")
+            self.jump101_policy = jump101(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load jump101 policy: {e}")
+        
+        try:
+            print("Loading GangnamStyle policy...")
+            self.gangnam_style_policy = GangnamStyle(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load GangnamStyle policy: {e}")
+        
+        try:
+            print("Loading Dance102Sar policy...")
+            self.dance102_sar_policy = Dance102Sar(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load Dance102Sar policy: {e}")
+        
+        try:
+            print("Loading FallAndGetup101 policy...")
+            self.fallAndGetup101_policy = FallAndGetup101(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load FallAndGetup101 policy: {e}")
+        
+        try:
+            print("Loading Dance204 policy...")
+            self.dance204_policy = Dance204(state_cmd, policy_output)
+        except Exception as e:
+            print(f"Warning: Failed to load Dance204 policy: {e}")
         
         print("initalized all policies!!!")
         
@@ -97,8 +181,68 @@ class FSM:
             self.cur_policy = self.kick_policy
         elif((policy_name == FSMStateName.SKILL_KungFu2)):
             self.cur_policy = self.kungfu2_policy
-        elif((policy_name == FSMStateName.SKILL_BEYOND_MIMIC)):
-            self.cur_policy = self.beyond_mimic_policy
+        elif((policy_name == FSMStateName.SKILL_FAS_BYD_7S)):
+            self.cur_policy = self.fas_byd_7s_policy
+        elif((policy_name == FSMStateName.SKILL_Dance101)):
+            if self.dance101_policy is not None:
+                self.cur_policy = self.dance101_policy
+            else:
+                print("Dance101 policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_Dance102)):
+            if self.dance102_policy is not None:
+                self.cur_policy = self.dance102_policy
+            else:
+                print("Dance102 policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_FightAndSports101)):
+            if self.fightAndSports101_policy is not None:
+                self.cur_policy = self.fightAndSports101_policy
+            else:
+                print("FightAndSports101 policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_Run201)):
+            if self.run201_policy is not None:
+                self.cur_policy = self.run201_policy
+            else:
+                print("Run201 policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_Walk105)):
+            if self.walk105_policy is not None:
+                self.cur_policy = self.walk105_policy
+            else:
+                print("Walk105 policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_jump101)):
+            if self.jump101_policy is not None:
+                self.cur_policy = self.jump101_policy
+            else:
+                print("jump101 policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_GANGNAM_STYLE)):
+            if self.gangnam_style_policy is not None:
+                self.cur_policy = self.gangnam_style_policy
+            else:
+                print("GangnamStyle policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_DANCE102_SAR)):
+            if self.dance102_sar_policy is not None:
+                self.cur_policy = self.dance102_sar_policy
+            else:
+                print("Dance102Sar policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_FALLANDGETUP101)):
+            if self.fallAndGetup101_policy is not None:
+                self.cur_policy = self.fallAndGetup101_policy
+            else:
+                print("FallAndGetup101 policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
+        elif((policy_name == FSMStateName.SKILL_DANCE204)):
+            if self.dance204_policy is not None:
+                self.cur_policy = self.dance204_policy
+            else:
+                print("Dance204 policy not available, switching to cooldown")
+                self.cur_policy = self.skill_cooldown_policy
         else:
             pass
             

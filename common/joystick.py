@@ -15,13 +15,20 @@ class JoystickButton(IntEnum):
     R1 = 5     # Right Bumper (R1 on PS)
     SELECT = 6   # Select/Share button
     START = 7  # Start/Options button
-    L3 = 8     # Left Stick Press
-    R3 = 9     # Right Stick Press
     HOME = 10  # PS: PS FSMCommand, Xbox: Xbox FSMCommand
     UP = 11    # D-pad Up (if mapped as separate button)
     DOWN = 12  # D-pad Down
     LEFT = 13  # D-pad Left
     RIGHT = 14 # D-pad Right
+
+# Joystick Axis indices
+class JoystickAxis(IntEnum):
+    LEFT_X = 0      # Left stick X axis
+    LEFT_Y = 1      # Left stick Y axis
+    L2 = 2          # Left trigger (L2)
+    RIGHT_X = 3     # Right stick X axis
+    RIGHT_Y = 4     # Right stick Y axis
+    R2 = 5          # Right trigger (R2)
 
 class JoyStick:
     def __init__(self):
@@ -88,3 +95,9 @@ class JoyStick:
         if 0 <= hat_id < self.hat_count:
             return self.hat_states[hat_id]
         return (0, 0)
+    
+    def is_trigger_pressed(self, axis_id, threshold=0.5):
+        """检测扳机键是否被按下（轴值大于阈值）"""
+        if 0 <= axis_id < self.axis_count:
+            return self.axis_states[axis_id] > threshold
+        return False

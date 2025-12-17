@@ -129,6 +129,21 @@ class SkillCast(FSMState):
         elif(self.cur_step >= self.num_step and self.state_cmd.skill_cmd == FSMCommand.SKILL_4):
             self.state_cmd.skill_cmd = FSMCommand.INVALID
             return FSMStateName.SKILL_KungFu2
+        elif(self.cur_step >= self.num_step and self.state_cmd.skill_cmd == FSMCommand.SKILL_5):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_Dance101
+        elif(self.cur_step >= self.num_step and self.state_cmd.skill_cmd == FSMCommand.SKILL_6):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_Dance102
+        elif(self.cur_step >= self.num_step and self.state_cmd.skill_cmd == FSMCommand.SKILL_7):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_FightAndSports101
+        elif(self.cur_step >= self.num_step and self.state_cmd.skill_cmd == FSMCommand.SKILL_8):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_Run201
+        elif(self.cur_step >= self.num_step and self.state_cmd.skill_cmd == FSMCommand.SKILL_9):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_Walk105
         elif(self.state_cmd.skill_cmd == FSMCommand.PASSIVE):
             self.state_cmd.skill_cmd = FSMCommand.INVALID
             return FSMStateName.PASSIVE

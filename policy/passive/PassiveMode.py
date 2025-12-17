@@ -43,6 +43,36 @@ class PassiveMode(FSMState):
         if(self.state_cmd.skill_cmd == FSMCommand.POS_RESET):
             self.state_cmd.skill_cmd = FSMCommand.INVALID
             return FSMStateName.FIXEDPOSE
+        elif(self.state_cmd.skill_cmd == FSMCommand.LOCO):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.LOCOMODE
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_1):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_CAST
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_2):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_CAST
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_3):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_KICK
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_4):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_CAST
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_5):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_Dance101
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_6):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_Dance102
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_7):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_FightAndSports101
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_8):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_Run201
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_9):
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return FSMStateName.SKILL_Walk105
         else:
             self.state_cmd.skill_cmd = FSMCommand.INVALID
             return FSMStateName.PASSIVE

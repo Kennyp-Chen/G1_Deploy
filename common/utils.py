@@ -15,8 +15,18 @@ class FSMStateName(Enum):
     SKILL_Dance = 7
     SKILL_KICK = 8
     SKILL_KungFu2 = 9
-    SKILL_BEYOND_MIMIC = 10
-   
+    SKILL_FAS_BYD_7S = 10
+    SKILL_Dance101 = 11
+    SKILL_Dance102 = 12
+    SKILL_FightAndSports101 = 13
+    SKILL_Run201 = 14
+    SKILL_Walk105 = 15
+    SKILL_jump101 = 16
+    SKILL_GANGNAM_STYLE = 17
+    SKILL_DANCE102_SAR = 18
+    SKILL_FALLANDGETUP101 = 19
+    SKILL_DANCE204 = 20
+
 
 @unique
 class FSMCommand(Enum):
@@ -28,9 +38,16 @@ class FSMCommand(Enum):
     SKILL_2 = 6
     SKILL_3 = 7
     SKILL_4 = 8
-    
-    
-    
+    SKILL_5 = 9
+    SKILL_6 = 10
+    SKILL_7 = 11
+    SKILL_8 = 12
+    SKILL_9 = 13
+    SKILL_10 = 14
+    SKILL_11 = 15
+    SKILL_12 = 16
+    SKILL_13 = 17
+    SKILL_14 = 18
 
 def get_gravity_orientation(quaternion):
     qw, qx, qy, qz = quaternion

@@ -25,6 +25,27 @@ from common.command_helper import create_damping_cmd, create_zero_cmd, init_cmd_
 from common.rotation_helper import get_gravity_orientation_real, transform_imu_data
 from common.remote_controller import RemoteController, KeyMap
 from config import Config
+from pynput import keyboard
+
+
+class KeyboardState:
+    def __init__(self):
+        self.pressed_keys = set()
+        self.just_pressed = set()
+    
+    def update(self):
+        self.just_pressed.clear()
+    
+    def is_just_pressed(self, char):
+        return char in self.just_pressed
+    
+    def press(self, char):
+        if char not in self.pressed_keys:
+            self.pressed_keys.add(char)
+            self.just_pressed.add(char)
+    
+    def release(self, char):
+        self.pressed_keys.discard(char)
 
 
 class Controller:
@@ -33,6 +54,10 @@ class Controller:
         self.remote_controller = RemoteController()
         self.num_joints = config.num_joints
         self.control_dt = config.control_dt
+        
+        # 初始化键盘状态
+        self.kb_state = KeyboardState()
+        self.setup_keyboard_listener()
         
         
         self.low_cmd = unitree_hg_msg_dds__LowCmd_()
@@ -65,7 +90,89 @@ class Controller:
         
         self.running = True
         self.counter_over_time = 0
+    
+    def setup_keyboard_listener(self):
+        """设置键盘监听器"""
+        def on_press(key):
+            try:
+                if hasattr(key, 'char') and key.char:
+                    self.kb_state.press(key.char)
+                    # Skill commands
+                    if key.char == 'r':
+                        self.state_cmd.skill_cmd = FSMCommand.PASSIVE
+                    elif key.char == '0':
+                        self.state_cmd.skill_cmd = FSMCommand.POS_RESET
+                    elif key.char == '1':
+                        self.state_cmd.skill_cmd = FSMCommand.LOCO
+                    elif key.char == '2':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_1
+                    elif key.char == '3':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_2
+                    elif key.char == '4':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_3
+                    elif key.char == '5':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_4
+                    elif key.char == '6':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_5
+                    elif key.char == '7':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_6
+                    elif key.char == '8':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_7
+                    elif key.char == '9':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_8
+                    elif key.char == 'p':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_9
+                    elif key.char == 'o':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_10
+                    elif key.char == 'i':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_11
+                    elif key.char == 'u':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_12
+                    elif key.char == 'y':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_13
+                    elif key.char == 't':
+                        self.state_cmd.skill_cmd = FSMCommand.SKILL_14
+            except AttributeError:
+                pass
         
+        def on_release(key):
+            try:
+                if hasattr(key, 'char') and key.char:
+                    self.kb_state.release(key.char)
+            except AttributeError:
+                pass
+        
+        listener = keyboard.Listener(on_press=on_press, on_release=on_release)
+        listener.start()
+        return listener
+    
+    def update_velocity_from_keyboard(self):
+        """从键盘更新速度命令（仅在LOCO模式下）"""
+        vel_increment = 0.1
+        
+        if self.kb_state.is_just_pressed('w'):
+            self.state_cmd.vel_cmd[0] += vel_increment
+            print(f"\nW: Forward {self.state_cmd.vel_cmd[0]:.2f}")
+        if self.kb_state.is_just_pressed('s'):
+            self.state_cmd.vel_cmd[0] -= vel_increment
+            print(f"\nS: Backward {self.state_cmd.vel_cmd[0]:.2f}")
+        if self.kb_state.is_just_pressed('a'):
+            self.state_cmd.vel_cmd[1] += vel_increment
+            print(f"\nA: Left {self.state_cmd.vel_cmd[1]:.2f}")
+        if self.kb_state.is_just_pressed('d'):
+            self.state_cmd.vel_cmd[1] -= vel_increment
+            print(f"\nD: Right {self.state_cmd.vel_cmd[1]:.2f}")
+        if self.kb_state.is_just_pressed('q'):
+            self.state_cmd.vel_cmd[2] += vel_increment
+            print(f"\nQ: Rotate Left {self.state_cmd.vel_cmd[2]:.2f}")
+        if self.kb_state.is_just_pressed('e'):
+            self.state_cmd.vel_cmd[2] -= vel_increment
+            print(f"\nE: Rotate Right {self.state_cmd.vel_cmd[2]:.2f}")
+        if self.kb_state.is_just_pressed(' '):
+            self.state_cmd.vel_cmd = np.zeros(3)
+            print("\nSpace: Reset velocities")
+        
+        self.kb_state.update()
         
     def LowStateHgHandler(self, msg: LowStateHG):
         self.low_state = msg
@@ -100,24 +207,71 @@ class Controller:
             
             loop_start_time = time.time()
             
-            if self.remote_controller.is_button_pressed(KeyMap.F1):
-                self.state_cmd.skill_cmd = FSMCommand.PASSIVE
-            if self.remote_controller.is_button_pressed(KeyMap.start):
-                self.state_cmd.skill_cmd = FSMCommand.POS_RESET
-            if self.remote_controller.is_button_pressed(KeyMap.A) and self.remote_controller.is_button_pressed(KeyMap.R1):
-                self.state_cmd.skill_cmd = FSMCommand.LOCO
-            if self.remote_controller.is_button_pressed(KeyMap.X) and self.remote_controller.is_button_pressed(KeyMap.R1):
-                self.state_cmd.skill_cmd = FSMCommand.SKILL_1
-            if self.remote_controller.is_button_pressed(KeyMap.Y) and self.remote_controller.is_button_pressed(KeyMap.R1):
-                self.state_cmd.skill_cmd = FSMCommand.SKILL_2
-            # if self.remote_controller.is_button_pressed(KeyMap.B) and self.remote_controller.is_button_pressed(KeyMap.R1):
-            #     self.state_cmd.skill_cmd = FSMCommand.SKILL_3
-            # if self.remote_controller.is_button_pressed(KeyMap.Y) and self.remote_controller.is_button_pressed(KeyMap.L1):
-            #     self.state_cmd.skill_cmd = FSMCommand.SKILL_4
+            # 检测组合键状态
+            r1_pressed = self.remote_controller.is_button_pressed(KeyMap.R1)
+            l1_pressed = self.remote_controller.is_button_pressed(KeyMap.L1)
+            l2_pressed = self.remote_controller.is_button_pressed(KeyMap.L2)
+            r2_pressed = self.remote_controller.is_button_pressed(KeyMap.R2)
             
+            # 手柄基本控制（单独按键，不与组合键同时按下）
+            if self.remote_controller.is_button_pressed(KeyMap.X) and not r1_pressed and not l1_pressed and not l2_pressed and not r2_pressed:
+                self.state_cmd.skill_cmd = FSMCommand.PASSIVE
+            if self.remote_controller.is_button_pressed(KeyMap.A) and not r1_pressed and not l1_pressed and not l2_pressed and not r2_pressed:
+                self.state_cmd.skill_cmd = FSMCommand.POS_RESET
+            if self.remote_controller.is_button_pressed(KeyMap.B) and not r1_pressed and not l1_pressed and not l2_pressed and not r2_pressed:
+                self.state_cmd.skill_cmd = FSMCommand.LOCO
+            
+            # R1组 - 基础技能
+            if r1_pressed and not l1_pressed and not l2_pressed and not r2_pressed:
+                if self.remote_controller.is_button_pressed(KeyMap.X):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_1
+                elif self.remote_controller.is_button_pressed(KeyMap.Y):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_2
+                elif self.remote_controller.is_button_pressed(KeyMap.B):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_3
+            
+            # L1组 - BeyondMimic 1-4
+            elif l1_pressed and not r1_pressed and not l2_pressed and not r2_pressed:
+                if self.remote_controller.is_button_pressed(KeyMap.X):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_4
+                elif self.remote_controller.is_button_pressed(KeyMap.Y):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_5
+                elif self.remote_controller.is_button_pressed(KeyMap.B):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_6
+                elif self.remote_controller.is_button_pressed(KeyMap.A):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_7
+            
+            # L2组 - BeyondMimic 5-8
+            elif l2_pressed and not r1_pressed and not l1_pressed and not r2_pressed:
+                if self.remote_controller.is_button_pressed(KeyMap.X):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_8
+                elif self.remote_controller.is_button_pressed(KeyMap.Y):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_9
+                elif self.remote_controller.is_button_pressed(KeyMap.B):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_10
+                elif self.remote_controller.is_button_pressed(KeyMap.A):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_11
+            
+            # R2组 - BeyondMimic 9-11
+            elif r2_pressed and not r1_pressed and not l1_pressed and not l2_pressed:
+                if self.remote_controller.is_button_pressed(KeyMap.X):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_12
+                elif self.remote_controller.is_button_pressed(KeyMap.Y):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_13
+                elif self.remote_controller.is_button_pressed(KeyMap.B):
+                    self.state_cmd.skill_cmd = FSMCommand.SKILL_14
+            
+            # 手柄速度控制
             self.state_cmd.vel_cmd[0] =  self.remote_controller.ly
             self.state_cmd.vel_cmd[1] =  self.remote_controller.lx * -1
             self.state_cmd.vel_cmd[2] =  self.remote_controller.rx * -1
+            
+            # 键盘速度控制（仅在LOCO模式下）
+            is_loco_mode = (self.FSM_controller.cur_policy.name == FSMStateName.LOCOMODE)
+            if is_loco_mode:
+                self.update_velocity_from_keyboard()
+            else:
+                self.kb_state.update()
 
             for i in range(self.num_joints):
                 self.qj[i] = self.low_state.motor_state[i].q
@@ -178,8 +332,13 @@ if __name__ == "__main__":
     while True:
         try:
             controller.run()
-            # Press the select key to exit
-            if controller.remote_controller.is_button_pressed(KeyMap.select):
+            # Press Y key to exit
+            if controller.remote_controller.is_button_pressed(KeyMap.Y) and \
+               not controller.remote_controller.is_button_pressed(KeyMap.R1) and \
+               not controller.remote_controller.is_button_pressed(KeyMap.L1) and \
+               not controller.remote_controller.is_button_pressed(KeyMap.L2) and \
+               not controller.remote_controller.is_button_pressed(KeyMap.R2):
+                print("\nY button pressed, exiting...")
                 break
         except KeyboardInterrupt:
             break

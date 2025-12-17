@@ -117,7 +117,27 @@ class LocoMode(FSMState):
         elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_3):
             return FSMStateName.SKILL_KICK
         elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_4):
-            return FSMStateName.SKILL_BEYOND_MIMIC
+            return FSMStateName.SKILL_FAS_BYD_7S
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_5):
+            return FSMStateName.SKILL_Dance101
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_6):
+            return FSMStateName.SKILL_Dance102
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_7):
+            return FSMStateName.SKILL_FightAndSports101
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_8):
+            return FSMStateName.SKILL_Run201
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_9):
+            return FSMStateName.SKILL_Walk105
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_10):
+            return FSMStateName.SKILL_jump101
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_11):
+            return FSMStateName.SKILL_GANGNAM_STYLE
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_12):
+            return FSMStateName.SKILL_DANCE102_SAR
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_13):
+            return FSMStateName.SKILL_FALLANDGETUP101
+        elif(self.state_cmd.skill_cmd == FSMCommand.SKILL_14):
+            return FSMStateName.SKILL_DANCE204
         elif(self.state_cmd.skill_cmd == FSMCommand.PASSIVE):
             return FSMStateName.PASSIVE
         else:

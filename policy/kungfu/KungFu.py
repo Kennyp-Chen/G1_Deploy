@@ -151,7 +151,8 @@ class KungFu(FSMState):
         motion_time = self.counter_step * 0.02
         self.ref_motion_phase = motion_time / self.motion_length
         motion_time = min(motion_time, self.motion_length)
-        print(progress_bar(motion_time, self.motion_length), end="", flush=True)
+        print(progress_bar(motion_time, self.motion_length),
+              end="", flush=True)
     
     def exit(self):
         self.action = np.zeros(23, dtype=np.float32)
@@ -164,6 +165,8 @@ class KungFu(FSMState):
 
     
     def checkChange(self):
+        # Only allow transitions to LOCO, PASSIVE, or POS_RESET
+        # Ignore all skill commands (SKILL_1 to SKILL_9)
         if(self.state_cmd.skill_cmd == FSMCommand.LOCO):
             self.state_cmd.skill_cmd = FSMCommand.INVALID
             return FSMStateName.SKILL_COOLDOWN
@@ -173,6 +176,14 @@ class KungFu(FSMState):
         elif(self.state_cmd.skill_cmd == FSMCommand.POS_RESET):
             self.state_cmd.skill_cmd = FSMCommand.INVALID
             return FSMStateName.FIXEDPOSE
+        elif self.state_cmd.skill_cmd in [
+            FSMCommand.SKILL_1, FSMCommand.SKILL_2, FSMCommand.SKILL_3,
+            FSMCommand.SKILL_4, FSMCommand.SKILL_5, FSMCommand.SKILL_6,
+            FSMCommand.SKILL_7, FSMCommand.SKILL_8, FSMCommand.SKILL_9
+        ]:
+            # Ignore skill switch commands, must go to LOCO first
+            self.state_cmd.skill_cmd = FSMCommand.INVALID
+            return self.name
         else:
             self.state_cmd.skill_cmd = FSMCommand.INVALID
             return FSMStateName.SKILL_KungFu

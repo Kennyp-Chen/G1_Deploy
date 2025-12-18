@@ -1,4 +1,4 @@
-net: enp2s0
+net: enp2s0 #本地端口选择lo
 num_joints: 29
 
 lowcmd_topic: "rt/lowcmd"

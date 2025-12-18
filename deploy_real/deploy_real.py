@@ -2,27 +2,23 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent.absolute()))
 
-from common.path_config import PROJECT_ROOT
 from common.ctrlcomp import *
 from FSM.FSM import *
 from typing import Union
 import numpy as np
 import time
-import os
-import yaml
 
 from unitree_sdk2py.core.channel import ChannelPublisher, ChannelFactoryInitialize
-from unitree_sdk2py.core.channel import ChannelSubscriber, ChannelFactoryInitialize
+from unitree_sdk2py.core.channel import ChannelSubscriber
 from unitree_sdk2py.idl.default import unitree_hg_msg_dds__LowCmd_, unitree_hg_msg_dds__LowState_
-from unitree_sdk2py.idl.default import unitree_go_msg_dds__LowCmd_, unitree_go_msg_dds__LowState_
 from unitree_sdk2py.idl.unitree_hg.msg.dds_ import LowCmd_ as LowCmdHG
 from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowCmd_ as LowCmdGo
 from unitree_sdk2py.idl.unitree_hg.msg.dds_ import LowState_ as LowStateHG
 from unitree_sdk2py.idl.unitree_go.msg.dds_ import LowState_ as LowStateGo
 from unitree_sdk2py.utils.crc import CRC
 
-from common.command_helper import create_damping_cmd, create_zero_cmd, init_cmd_hg, init_cmd_go, MotorMode
-from common.rotation_helper import get_gravity_orientation_real, transform_imu_data
+from common.command_helper import create_damping_cmd, create_zero_cmd, init_cmd_hg, MotorMode
+from common.rotation_helper import get_gravity_orientation_real
 from common.remote_controller import RemoteController, KeyMap
 from config import Config
 from pynput import keyboard
@@ -82,7 +78,7 @@ class Controller:
         self.dqj = np.zeros(self.num_joints, dtype=np.float32)
         self.quat = np.zeros(4, dtype=np.float32)
         self.ang_vel = np.zeros(3, dtype=np.float32)
-        self.gravity_orientation = np.array([0,0,-1], dtype=np.float32)
+        self.gravity_orientation = np.array([0, 0, -1], dtype=np.float32)
         
         self.state_cmd = StateAndCmd(self.num_joints)
         self.policy_output = PolicyOutput(self.num_joints)
@@ -262,9 +258,9 @@ class Controller:
                     self.state_cmd.skill_cmd = FSMCommand.SKILL_14
             
             # 手柄速度控制
-            self.state_cmd.vel_cmd[0] =  self.remote_controller.ly
-            self.state_cmd.vel_cmd[1] =  self.remote_controller.lx * -1
-            self.state_cmd.vel_cmd[2] =  self.remote_controller.rx * -1
+            self.state_cmd.vel_cmd[0] = self.remote_controller.ly
+            self.state_cmd.vel_cmd[1] = self.remote_controller.lx * -1
+            self.state_cmd.vel_cmd[2] = self.remote_controller.rx * -1
             
             # 键盘速度控制（仅在LOCO模式下）
             is_loco_mode = (self.FSM_controller.cur_policy.name == FSMStateName.LOCOMODE)
@@ -308,7 +304,7 @@ class Controller:
             
             loop_end_time = time.time()
             delta_time = loop_end_time - loop_start_time
-            if(delta_time < self.control_dt):
+            if delta_time < self.control_dt:
                 time.sleep(self.control_dt - delta_time)
                 self.counter_over_time = 0
             else:

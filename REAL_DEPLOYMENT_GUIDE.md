@@ -12,6 +12,7 @@
 4. [安全检查](#安全检查)
 5. [测试流程](#测试流程)
 6. [故障排查](#故障排查)
+7. [创建虚拟环境](#使用-venv创建虚拟环境)
 ---
 
 ## 🚀 部署方式选择
@@ -646,4 +647,41 @@ print(f"KP: {kps[:5]}, KD: {kds[:5]}")
 
 # 4. 验证策略文件存在
 ls policy/beyond_mimic_motions/*/policy.onnx
+```
+
+## 创建虚拟环境
+### 使用 venv创建虚拟环境
+```bash
+# SSH 到机器人
+ssh unitree@<机器人IP>
+
+# 创建虚拟环境
+cd ~/RoboMimic_Deploy
+python3 -m venv venv
+
+# 激活虚拟环境
+source venv/bin/activate
+
+# 安装依赖
+pip install --upgrade pip
+pip install numpy pynput onnxruntime
+
+# 验证安装
+python -c "import numpy; import onnxruntime; print('OK')"
+
+# 运行程序
+python deploy_real/deploy_real.py
+```
+### conda
+```bash
+# 创建环境
+conda create -n robot python=3.8
+conda activate robot
+
+# 安装依赖
+conda install numpy
+pip install pynput onnxruntime unitree_sdk2py
+
+# 运行
+python deploy_real/deploy_real.py
 ```

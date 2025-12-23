@@ -21,7 +21,14 @@ from common.command_helper import create_damping_cmd, create_zero_cmd, init_cmd_
 from common.rotation_helper import get_gravity_orientation_real
 from common.remote_controller import RemoteController, KeyMap
 from config import Config
-from pynput import keyboard
+import threading
+try:
+    import keyboard
+    KEYBOARD_AVAILABLE = True
+except ImportError:
+    KEYBOARD_AVAILABLE = False
+    print("Warning: 'keyboard' library not available. Keyboard control disabled.")
+    print("Install with: pip install keyboard")
 
 
 class KeyboardState:
@@ -86,87 +93,88 @@ class Controller:
         
         self.running = True
         self.counter_over_time = 0
+        self.loop_counter = 0  # 用于控制打印频率
     
     def setup_keyboard_listener(self):
         """设置键盘监听器"""
-        def on_press(key):
-            try:
-                if hasattr(key, 'char') and key.char:
-                    self.kb_state.press(key.char)
-                    # Skill commands
-                    if key.char == 'r':
-                        self.state_cmd.skill_cmd = FSMCommand.PASSIVE
-                    elif key.char == '0':
-                        self.state_cmd.skill_cmd = FSMCommand.POS_RESET
-                    elif key.char == '1':
-                        self.state_cmd.skill_cmd = FSMCommand.LOCO
-                    elif key.char == '2':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_1
-                    elif key.char == '3':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_2
-                    elif key.char == '4':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_3
-                    elif key.char == '5':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_4
-                    elif key.char == '6':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_5
-                    elif key.char == '7':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_6
-                    elif key.char == '8':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_7
-                    elif key.char == '9':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_8
-                    elif key.char == 'p':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_9
-                    elif key.char == 'o':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_10
-                    elif key.char == 'i':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_11
-                    elif key.char == 'u':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_12
-                    elif key.char == 'y':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_13
-                    elif key.char == 't':
-                        self.state_cmd.skill_cmd = FSMCommand.SKILL_14
-            except AttributeError:
-                pass
+        if not KEYBOARD_AVAILABLE:
+            print("Keyboard control disabled - library not available")
+            return None
         
-        def on_release(key):
-            try:
-                if hasattr(key, 'char') and key.char:
-                    self.kb_state.release(key.char)
-            except AttributeError:
-                pass
-        
-        listener = keyboard.Listener(on_press=on_press, on_release=on_release)
-        listener.start()
-        return listener
+        try:
+            def keyboard_handler(event):
+                try:
+                    if event.event_type == 'down':
+                        self.kb_state.press(event.name)
+                        # Skill commands
+                        if event.name == 'r':
+                            self.state_cmd.skill_cmd = FSMCommand.PASSIVE
+                        elif event.name == '0':
+                            self.state_cmd.skill_cmd = FSMCommand.POS_RESET
+                        elif event.name == '1':
+                            self.state_cmd.skill_cmd = FSMCommand.LOCO
+                        elif event.name == '2':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_1
+                        elif event.name == '3':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_2
+                        elif event.name == '4':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_3
+                        elif event.name == '5':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_4
+                        elif event.name == '6':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_5
+                        elif event.name == '7':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_6
+                        elif event.name == '8':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_7
+                        elif event.name == '9':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_8
+                        elif event.name == 'p':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_9
+                        elif event.name == 'o':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_10
+                        elif event.name == 'i':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_11
+                        elif event.name == 'u':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_12
+                        elif event.name == 'y':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_13
+                        elif event.name == 't':
+                            self.state_cmd.skill_cmd = FSMCommand.SKILL_14
+                    elif event.event_type == 'up':
+                        self.kb_state.release(event.name)
+                except Exception as e:
+                    print(f"Keyboard handler error: {e}")
+            
+            keyboard.hook(keyboard_handler)
+            print("Keyboard control enabled")
+            return True
+        except Exception as e:
+            print(f"Failed to setup keyboard listener: {e}")
+            print("Keyboard control disabled - requires root privileges")
+            return None
     
     def update_velocity_from_keyboard(self):
         """从键盘更新速度命令（仅在LOCO模式下）"""
+        if not KEYBOARD_AVAILABLE:
+            return
+            
         vel_increment = 0.1
         
         if self.kb_state.is_just_pressed('w'):
             self.state_cmd.vel_cmd[0] += vel_increment
-            print(f"\nW: Forward {self.state_cmd.vel_cmd[0]:.2f}")
         if self.kb_state.is_just_pressed('s'):
             self.state_cmd.vel_cmd[0] -= vel_increment
-            print(f"\nS: Backward {self.state_cmd.vel_cmd[0]:.2f}")
         if self.kb_state.is_just_pressed('a'):
             self.state_cmd.vel_cmd[1] += vel_increment
-            print(f"\nA: Left {self.state_cmd.vel_cmd[1]:.2f}")
         if self.kb_state.is_just_pressed('d'):
             self.state_cmd.vel_cmd[1] -= vel_increment
-            print(f"\nD: Right {self.state_cmd.vel_cmd[1]:.2f}")
         if self.kb_state.is_just_pressed('q'):
             self.state_cmd.vel_cmd[2] += vel_increment
-            print(f"\nQ: Rotate Left {self.state_cmd.vel_cmd[2]:.2f}")
         if self.kb_state.is_just_pressed('e'):
             self.state_cmd.vel_cmd[2] -= vel_increment
-            print(f"\nE: Rotate Right {self.state_cmd.vel_cmd[2]:.2f}")
-        if self.kb_state.is_just_pressed(' '):
+        if self.kb_state.is_just_pressed('space'):
             self.state_cmd.vel_cmd = np.zeros(3)
-            print("\nSpace: Reset velocities")
         
         self.kb_state.update()
         
@@ -275,7 +283,7 @@ class Controller:
 
             # imu_state quaternion: w, x, y, z
             quat = self.low_state.imu_state.quaternion
-            ang_vel = np.array([self.low_state.imu_state.gyroscope], dtype=np.float32)
+            ang_vel = np.array(self.low_state.imu_state.gyroscope, dtype=np.float32)
             
             gravity_orientation = get_gravity_orientation_real(quat)
             
@@ -304,11 +312,16 @@ class Controller:
             
             loop_end_time = time.time()
             delta_time = loop_end_time - loop_start_time
+            
+            self.loop_counter += 1
+            
             if delta_time < self.control_dt:
                 time.sleep(self.control_dt - delta_time)
                 self.counter_over_time = 0
             else:
-                print("control loop over time.")
+                # 每50次循环（1秒）只打印一次警告
+                if self.loop_counter % 50 == 0:
+                    print(f"Warning: control loop over time. Avg: {delta_time*1000:.1f}ms (target: {self.control_dt*1000:.1f}ms)")
                 self.counter_over_time += 1
             pass
         except ValueError as e:

@@ -12,7 +12,7 @@
 4. [安全检查](#安全检查)
 5. [测试流程](#测试流程)
 6. [故障排查](#故障排查)
-7. [创建虚拟环境](#使用-venv创建虚拟环境)
+7. [创建虚拟环境](#创建虚拟环境)
 ---
 
 ## 🚀 部署方式选择
@@ -675,8 +675,8 @@ python deploy_real/deploy_real.py
 ### conda
 ```bash
 # 创建环境
-conda create -n robot python=3.8
-conda activate robot
+conda create -n CYP_bm python=3.8
+conda activate CYP_bm
 
 # 安装依赖
 conda install numpy
@@ -684,4 +684,17 @@ pip install pynput onnxruntime unitree_sdk2py
 
 # 运行
 python deploy_real/deploy_real.py
+```
+
+```bash
+# unitree_sdk2py 可能是系统级安装的
+# 有两种处理方式：
+
+# 方式1：在虚拟环境中也安装（推荐）
+source venv/bin/activate
+pip install unitree_sdk2py
+
+# 方式2：让虚拟环境访问系统包
+python3 -m venv venv --system-site-packages
+# 这样可以访问系统的 unitree_sdk2py
 ```
